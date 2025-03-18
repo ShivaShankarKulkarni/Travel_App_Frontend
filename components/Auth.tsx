@@ -1,36 +1,75 @@
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import { Button, Platform, StyleSheet, Text, TextInput, View } from "react-native"
-import { SigninInput, SignupInput } from "travel-app-common";
+import { signinInput, SigninInput, signupInput, SignupInput } from "travel-app-common";
+import { z } from "zod";
 import axios from "axios";
 import { BACKEND_URL } from "@/config";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const Auth = ({type}: {type: "signup" | "signin"})=>{
     const router = useRouter();
+    const [errors, setErrors] = useState<{ [key: string]: string | undefined }>({});
+    const [postInputs, setPostInputs] = useState<SignupInput | SigninInput>(
+        type === "signin" ? { username: "", password: "" } // SigninInput structure
+        : { username: "", password: "", fullName: "", phoneNumber: "" } // SignupInput structure
+    );
+    
+    // Function to Validate Inputs
+    const validateInputs = () => {
+        try {
+            if (type === "signup") {
+                signupInput.parse(postInputs);
+            } else {
+                signinInput.parse(postInputs);
+            }
+            setErrors({});
+            return true; // Validation passed
+        } catch (error) {
+        if (error instanceof z.ZodError) {
+            const formattedErrors: { [key: string]: string } = {};
+            error.errors.forEach((err) => {
+            formattedErrors[err.path[0]] = err.message;
+            });
+            setErrors(formattedErrors);
+        }
+        return false; 
+        }
+    };
 
-    const [postInputs, setPostInputs] = useState<SignupInput>({
-        username: "",
-        password: "",
-        fullName: "",
-        phoneNumber: ""
-    })
 
     async function sendRequest(){
-        const response = await axios.post(`${BACKEND_URL}/v1/user/${type == "signin"? "signin" : "signup"}`, postInputs);
-        const jwt = response.data.token;
-        const displayName = response.data.newUser.fullName
-        if(Platform.OS === "web"){
-            localStorage.setItem("token", jwt);
+        if (!validateInputs()) {
+            return; // Stop if validation fails
         }
+        try{
+            const response = await axios.post(`${BACKEND_URL}/v1/user/${type == "signin"? "signin" : "signup"}`, postInputs);
+            const jwt = response.data.token;
+            const displayName = response.data.newUser.fullName
+            if(Platform.OS === "web"){
+                localStorage.setItem("token", jwt);
+            }
         else{
             await AsyncStorage.setItem("token", jwt);
         }
-        // router.push(`/dashboard/${displayName}`);
         router.push({
             pathname: "/dashboard/[displayName]",
             params: { displayName: encodeURIComponent(displayName) },
         });
+        }catch (error: any) {
+            if (error.response) {
+                const { status } = error.response;
+                let errorMessage = "Something went wrong.";
+                if (status === 400) errorMessage = "Invalid input. Please check your details.";
+                else if (status === 409) errorMessage = "User already exists. Try logging in.";
+                else if (status === 404) errorMessage = "Incorrect username or password.";
+                else if (status === 500) errorMessage = "Server error. Please try again later.";
+        
+                alert(errorMessage);
+            } else {
+                alert("Network error. Please check your connection.");
+            }
+        }        
     }
     return <>
     <View style={styles.container}>
@@ -44,13 +83,13 @@ export const Auth = ({type}: {type: "signup" | "signin"})=>{
             </Link>
         </Text>
     <View style={styles.inputContainer}>
-        <LabelledInput label="Username" placeholder="abc" onChangeText={(text)=>{
+        <LabelledInput label="Username" placeholder="abc"  error={errors.username} onChangeText={(text)=>{
             setPostInputs({
                 ...postInputs,
                 username: text
             })
         }}></LabelledInput>
-        <LabelledInput label="Password" placeholder="1234567890" isPassword={true} onChangeText={(text)=>{
+        <LabelledInput label="Password" placeholder="1234567890"  error={errors.password} isPassword={true} onChangeText={(text)=>{
             setPostInputs({
                 ...postInputs,
                 password: text
@@ -58,7 +97,7 @@ export const Auth = ({type}: {type: "signup" | "signin"})=>{
         }}></LabelledInput>
 
         {type === "signup"? 
-            <LabelledInput label="FullName" placeholder="ABCDEFGHIJKL" onChangeText={(text)=>{
+            <LabelledInput label="FullName" placeholder="ABCDEFGHIJKL"  error={errors.fullName} onChangeText={(text)=>{
                 setPostInputs({
                     ...postInputs,
                     fullName: text
@@ -67,7 +106,7 @@ export const Auth = ({type}: {type: "signup" | "signin"})=>{
         : null}
 
         {type === "signup"? 
-            <LabelledInput label="PhoneNumber" placeholder="1234567890" onChangeText={(text)=>{
+            <LabelledInput label="PhoneNumber" placeholder="1234567890" error={errors.phoneNumber} onChangeText={(text)=>{
                 setPostInputs({
                     ...postInputs,
                     phoneNumber: text
@@ -90,15 +129,17 @@ interface LabelledInputType{
     isPassword?: boolean;
     value? : string;
     type?: string;
+    error?: string; // Add error prop
 }
 
-export function LabelledInput({label, placeholder, onChangeText, isPassword=false}: LabelledInputType){
+export function LabelledInput({label, placeholder, onChangeText, isPassword=false, error}: LabelledInputType){
     return (
         <View style={styles.inputWrapper}>
             <Text style={styles.label}>
                 {label}
             </Text>
             <TextInput  autoCapitalize='none' style={styles.input} placeholder={placeholder} onChangeText={onChangeText} keyboardType="default" secureTextEntry={isPassword} ></TextInput>
+            {error && <Text style={{ color: "red", fontSize: 12 }}>{error}</Text>}
         </View>
     )
 }

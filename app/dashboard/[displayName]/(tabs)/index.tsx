@@ -81,6 +81,7 @@ export default function Dashboard(){
         } else if (sort === "slowly") {
             updatedJourneys.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
         }
+        // User's journeys first
         updatedJourneys.sort((a, b) => {
             const isCurrentUserA = a.captain.fullName === displayName ? 1: 0;
             const isCurrentUserB = b.captain.fullName === displayName ? 1: 0;

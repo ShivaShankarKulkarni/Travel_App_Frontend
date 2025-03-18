@@ -1,13 +1,16 @@
-import { Button, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {  ScrollView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useState } from "react"
 import { JourneyDate } from "travel-app-common";
 import { LabelledInput } from "@/components/Auth";
 import axios from "axios";
+import { z } from "zod";
 import { BACKEND_URL } from "@/config";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useJourney } from "../../../context/JourneyContext";
+import { journeyPost } from "travel-app-common";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 
 export default function CreateJourney(){
@@ -22,15 +25,37 @@ export default function CreateJourney(){
     })
     const [startTime, setStartTime] = useState<Date>(new Date());
     const [showPicker, setShowPicker] = useState(false);
-    
+    const [errors, setErrors] = useState<{ [key: string]: string | undefined }>({});
+     // Function to Validate Inputs
+    const validateInputs = () => {
+        try {
+            journeyPost.parse(journeyInputs);
+            setErrors({});
+            return true; // Validation passed
+        } catch (error) {
+        if (error instanceof z.ZodError) {
+            const formattedErrors: { [key: string]: string } = {};
+            error.errors.forEach((err) => {
+            formattedErrors[err.path[0]] = err.message;
+            });
+            setErrors(formattedErrors);
+        }
+        return false; 
+        }
+    };
+
+
     async function sendRequest(){
+        if (!validateInputs()) {
+            return; // Stop if validation fails
+        }
         const getToken = async () => {
             if (Platform.OS === "web") {
               return localStorage.getItem("token");
             } else {
               return await AsyncStorage.getItem("token");
             }
-          };
+        };
         try{
             const response = await axios.post(`${BACKEND_URL}/v1/journey/journey`, journeyInputs, {
                 headers: {
@@ -39,15 +64,27 @@ export default function CreateJourney(){
             });
             setRefresh((prev: boolean) => !prev);
             if (Platform.OS === "web") {
-                localStorage.setItem('refreshJourney', 'true'); // Store a refresh flag
                 return router.push(`/dashboard/${displayName}`);
             }else {
-                await AsyncStorage.setItem('refreshJourney', 'true'); // Store a refresh flag
+                setJourneyInputs({
+                    startingLoc: "",
+                    destinationLoc: "",
+                    startTime: new Date(),
+                    route: [] as string[]
+                })
                 return router.push(`/dashboard/${displayName}`);
             }
-        }catch(e){
-            // Alert here
-            alert("Not saved! \n Some Error");
+        }catch (error: any) {
+            if (error.response) {
+                const { status } = error.response;
+                let errorMessage = "Something went wrong.";
+                if (status === 400) errorMessage = "Invalid input. Please check your details.";
+                else if (status === 500) errorMessage = "Server error. Please try again later.";
+        
+                alert(errorMessage);
+            } else {
+                alert("Network error. Please check your connection.");
+            }
         }
     }
 
@@ -85,15 +122,16 @@ export default function CreateJourney(){
       };
 
     return (
+            <ScrollView>
         <View style={styles.container}>
             <View style={styles.inputContainer}>
-                <LabelledInput label="Starting Location" placeholder="Place A" value={journeyInputs.startingLoc} onChangeText={(text)=>{
+                <LabelledInput label="Starting Location" error={errors.startingLoc} placeholder="Place A" value={journeyInputs.startingLoc} onChangeText={(text)=>{
                     setJourneyInputs({
                         ...journeyInputs,
                         startingLoc: text
                     })
                 }}></LabelledInput>
-                <LabelledInput label="Destination Location" placeholder="Place B" onChangeText={(text)=>{
+                <LabelledInput label="Destination Location" error={errors.destinationLoc} placeholder="Place B" onChangeText={(text)=>{
                     setJourneyInputs({
                         ...journeyInputs,
                         destinationLoc: text
@@ -114,6 +152,7 @@ export default function CreateJourney(){
                         onChange={handleDateChange}
                         />
                     )}
+                     {errors.startTime && <Text style={styles.errorText}>{errors.startTime}</Text>}
                 </View>
                 
                 <View style={styles.checkpointContainer}>
@@ -126,7 +165,7 @@ export default function CreateJourney(){
                         <Text style={styles.buttonText}>Add Checkpoint</Text>
                     </Pressable>
                 </View>
-                
+                {errors.route && <Text style={styles.errorText}>{errors.route}</Text>}
                 <Text style={styles.infoText}>Enter one checkpoint at a time and Click on Add</Text>
                 
                 <View style={styles.routeList}>
@@ -144,6 +183,7 @@ export default function CreateJourney(){
                 </Pressable>
             </View>
             </View>
+            </ScrollView>
     )
 }
 
@@ -232,4 +272,9 @@ const styles = StyleSheet.create({
         width: "100%",    // ✅ Makes sure input takes full space
         minWidth: 300,
       },
+      errorText: {
+        color: "#E74C3C",
+        fontSize: 14,
+        marginTop: 4,
+    },
 });
