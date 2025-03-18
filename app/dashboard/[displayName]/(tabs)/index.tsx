@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { Image, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Text } from "react-native";
-// import { useFlag } from "../context/FlagContext";
+import { useJourney } from "../../../context/JourneyContext"; 
+
 
 
 interface Captain {
@@ -26,7 +27,7 @@ interface Journey{
 }
 
 export default function Dashboard(){
-    // const { flag } = useFlag();
+    const { refresh, setRefresh } = useJourney();
     const [journeys, setJourneys] = useState<Journey[]>([]);
     const [journeys1, setJourneys1] = useState<Journey[]>([]);
     const[filter,setFilter] = useState("");
@@ -58,7 +59,7 @@ export default function Dashboard(){
             }
         }
         fetchJourneys();
-    },[]);
+    },[refresh]);
 
 
     // Filtering and Sorting of Journeys:
@@ -109,6 +110,7 @@ export default function Dashboard(){
                 }
             })
             alert("Deletion Successfull");
+            setRefresh((prev: boolean) => !prev);
         }catch(error){
             alert("Deletion Unsuccessfull");
         }

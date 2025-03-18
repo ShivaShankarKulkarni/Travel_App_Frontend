@@ -7,10 +7,11 @@ import { BACKEND_URL } from "@/config";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { useFlag } from "@/app/context/FlagContext";
+import { useJourney } from "../../../context/JourneyContext";
+
 
 export default function CreateJourney(){
-    // const { setFlag } = useFlag();
+    const { setRefresh } = useJourney();
     const router = useRouter();
     const { displayName } = useLocalSearchParams();
     const [journeyInputs, setJourneyInputs] = useState<JourneyDate>({
@@ -36,8 +37,14 @@ export default function CreateJourney(){
                     Authorization: await getToken()
                 }
             });
-            // setFlag((prevFlag: boolean) => !prevFlag); // Toggle the flag
-            router.push(`/dashboard/${displayName}`);
+            setRefresh((prev: boolean) => !prev);
+            if (Platform.OS === "web") {
+                localStorage.setItem('refreshJourney', 'true'); // Store a refresh flag
+                return router.push(`/dashboard/${displayName}`);
+            }else {
+                await AsyncStorage.setItem('refreshJourney', 'true'); // Store a refresh flag
+                return router.push(`/dashboard/${displayName}`);
+            }
         }catch(e){
             // Alert here
             alert("Not saved! \n Some Error");
