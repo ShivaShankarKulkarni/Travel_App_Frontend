@@ -27,7 +27,10 @@ export const Auth = ({type}: {type: "signup" | "signin"})=>{
             await AsyncStorage.setItem("token", jwt);
         }
         // router.push(`/dashboard/${displayName}`);
-        router.push(`/dashboard`);
+        router.push({
+            pathname: "/dashboard/[displayName]",
+            params: { displayName: encodeURIComponent(displayName) },
+        });
     }
     return <>
     <View style={styles.container}>

@@ -4,7 +4,7 @@ import { JourneyDate } from "travel-app-common";
 import { LabelledInput } from "@/components/Auth";
 import axios from "axios";
 import { BACKEND_URL } from "@/config";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 // import { useFlag } from "@/app/context/FlagContext";
@@ -12,6 +12,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function CreateJourney(){
     // const { setFlag } = useFlag();
     const router = useRouter();
+    const { displayName } = useLocalSearchParams();
     const [journeyInputs, setJourneyInputs] = useState<JourneyDate>({
         startingLoc: "",
         destinationLoc: "",
@@ -36,7 +37,7 @@ export default function CreateJourney(){
                 }
             });
             // setFlag((prevFlag: boolean) => !prevFlag); // Toggle the flag
-            router.push("/dashboard");
+            router.push(`/dashboard/${displayName}`);
         }catch(e){
             // Alert here
             alert("Not saved! \n Some Error");
@@ -91,18 +92,11 @@ export default function CreateJourney(){
                         destinationLoc: text
                     })
                 }}></LabelledInput>
-                {/* <LabelledInput label="Start Time" placeholder="Select Start Time" value={journeyInputs.startTime.toISOString().slice(0, 16)} type="datetime-local" onChangeText={(text)=>{
-                    setJourneyInputs({
-                        ...journeyInputs,
-                        startTime: new Date(text)
-                    })
-                }}></LabelledInput> */}
-
-                <View style={{ padding: 20 }}>
-                    <Text style={{ fontSize: 16, marginBottom: 10 }}>Start Time:</Text>
-
-                    {/* Show selected DateTime */}
-                    <Button title={startTime.toLocaleString()} onPress={() => setShowPicker(true)} />
+                <View style={{paddingBottom: 8}} >
+                    <Text style={styles.label}>Start Time:</Text>
+                    <Pressable onPress={() => setShowPicker(!showPicker)}>
+                        <Text style={styles.inputDate}>{startTime.toLocaleString()}</Text>
+                    </Pressable>
 
                     {/* Render DateTimePicker when showPicker is true */}
                     {showPicker && (
@@ -214,4 +208,21 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginTop: 15,
     },
+    label: {
+        fontSize: 16,
+        fontWeight: "500",
+        marginBottom: 5,
+        color: "#333",
+      },
+      inputDate: {
+        backgroundColor: "#FFF",
+        color: "#808080",
+        borderWidth: 1,
+        borderColor: "#CED4DA",
+        borderRadius: 8,
+        padding: 12,
+        fontSize: 16,
+        width: "100%",    // ✅ Makes sure input takes full space
+        minWidth: 300,
+      },
 });
