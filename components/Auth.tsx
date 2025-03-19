@@ -132,13 +132,13 @@ interface LabelledInputType{
     error?: string; // Add error prop
 }
 
-export function LabelledInput({label, placeholder, onChangeText, isPassword=false, error}: LabelledInputType){
+export function LabelledInput({label, placeholder, onChangeText, isPassword=false, error, value}: LabelledInputType){
     return (
         <View style={styles.inputWrapper}>
             <Text style={styles.label}>
                 {label}
             </Text>
-            <TextInput  autoCapitalize='none' style={styles.input} placeholder={placeholder} onChangeText={onChangeText} keyboardType="default" secureTextEntry={isPassword} ></TextInput>
+            <TextInput value={value} autoCapitalize='none' style={styles.input} placeholder={placeholder} onChangeText={onChangeText} keyboardType="default" secureTextEntry={isPassword} ></TextInput>
             {error && <Text style={{ color: "red", fontSize: 12 }}>{error}</Text>}
         </View>
     )

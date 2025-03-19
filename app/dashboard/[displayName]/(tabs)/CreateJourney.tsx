@@ -1,5 +1,5 @@
 import {  ScrollView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { JourneyDate } from "travel-app-common";
 import { LabelledInput } from "@/components/Auth";
 import axios from "axios";
@@ -10,7 +10,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useJourney } from "../../../context/JourneyContext";
 import { journeyPost } from "travel-app-common";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 
 
 export default function CreateJourney(){
@@ -44,7 +44,6 @@ export default function CreateJourney(){
         }
     };
 
-
     async function sendRequest(){
         if (!validateInputs()) {
             return; // Stop if validation fails
@@ -63,17 +62,15 @@ export default function CreateJourney(){
                 }
             });
             setRefresh((prev: boolean) => !prev);
-            if (Platform.OS === "web") {
-                return router.push(`/dashboard/${displayName}`);
-            }else {
-                setJourneyInputs({
-                    startingLoc: "",
-                    destinationLoc: "",
-                    startTime: new Date(),
-                    route: [] as string[]
-                })
-                return router.push(`/dashboard/${displayName}`);
-            }
+            setJourneyInputs({
+                startingLoc: "",
+                destinationLoc: "",
+                startTime: new Date(),
+                route: []
+              });
+              setCheckpoint("");
+            return router.push(`/dashboard/${displayName}`);
+
         }catch (error: any) {
             if (error.response) {
                 const { status } = error.response;
@@ -131,7 +128,7 @@ export default function CreateJourney(){
                         startingLoc: text
                     })
                 }}></LabelledInput>
-                <LabelledInput label="Destination Location" error={errors.destinationLoc} placeholder="Place B" onChangeText={(text)=>{
+                <LabelledInput label="Destination Location" error={errors.destinationLoc} value={journeyInputs.destinationLoc} placeholder="Place B" onChangeText={(text)=>{
                     setJourneyInputs({
                         ...journeyInputs,
                         destinationLoc: text
@@ -158,7 +155,8 @@ export default function CreateJourney(){
                 <View style={styles.checkpointContainer}>
                     <TextInput 
                         style={styles.input} 
-                        placeholder="Enter Checkpoint" 
+                        placeholder="Enter Checkpoint"
+                        value={checkpoint}
                         onChangeText={(text) => setCheckpoint(text)}
                     />
                     <Pressable style={styles.addButton} onPress={addCheckpoint}>
@@ -180,6 +178,17 @@ export default function CreateJourney(){
                 </View>
                 <Pressable style={styles.createButton} onPress={sendRequest}>
                     <Text style={styles.buttonText}>Create Journey</Text>
+                </Pressable>
+                <Pressable style={styles.resetButton} onPress={() => {
+                    setJourneyInputs({
+                        startingLoc: "",
+                        destinationLoc: "",
+                        startTime: new Date(),
+                        route: []
+                    })
+                    setCheckpoint("");
+                }}>
+                    <Text style={styles.buttonText}>Reset Button</Text>
                 </Pressable>
             </View>
             </View>
@@ -250,6 +259,13 @@ const styles = StyleSheet.create({
     },
     createButton: {
         backgroundColor: "#28A745",
+        paddingVertical: 12,
+        borderRadius: 8,
+        alignItems: "center",
+        marginTop: 15,
+    },
+    resetButton:{
+        backgroundColor: "red",
         paddingVertical: 12,
         borderRadius: 8,
         alignItems: "center",
