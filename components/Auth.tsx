@@ -4,8 +4,8 @@ import { Button, Platform, StyleSheet, Text, TextInput, View } from "react-nativ
 import { signinInput, SigninInput, signupInput, SignupInput } from "travel-app-common";
 import { z } from "zod";
 import axios from "axios";
-import { BACKEND_URL } from "@/config";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BACKEND_URL } from "@/config";
 
 export const Auth = ({type}: {type: "signup" | "signin"})=>{
     const router = useRouter();
@@ -69,7 +69,7 @@ export const Auth = ({type}: {type: "signup" | "signin"})=>{
             } else {
                 alert("Network error. Please check your connection.");
             }
-        }        
+        }
     }
     return <>
     <View style={styles.container}>

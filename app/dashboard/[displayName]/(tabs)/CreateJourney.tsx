@@ -7,6 +7,7 @@ import { z } from "zod";
 import { BACKEND_URL } from "@/config";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useJourney } from "../../../context/JourneyContext";
 import { journeyPost } from "travel-app-common";
@@ -17,14 +18,19 @@ export default function CreateJourney(){
     const { setRefresh } = useJourney();
     const router = useRouter();
     const { displayName } = useLocalSearchParams();
+
+
     const [journeyInputs, setJourneyInputs] = useState<JourneyDate>({
         startingLoc: "",
         destinationLoc: "",
         startTime: new Date(),
         route: [] as string[]
     })
+
+    
     const [startTime, setStartTime] = useState<Date>(new Date());
     const [showPicker, setShowPicker] = useState(false);
+    const toggleDatePicker = () => setShowPicker((prev) => !prev);
     const [errors, setErrors] = useState<{ [key: string]: string | undefined }>({});
      // Function to Validate Inputs
     const validateInputs = () => {
@@ -105,6 +111,11 @@ export default function CreateJourney(){
     };
 
     const handleDateChange = (event: any, selectedDate?: Date) => {
+        if (event.type === "dismissed") {
+            console.log("Picker dismissed");
+            setShowPicker(false);  // Ensure state updates properly when picker is dismissed
+            return;
+          }
         
         if (selectedDate) {
           setStartTime(selectedDate);
@@ -114,8 +125,8 @@ export default function CreateJourney(){
           })
         }
         if (Platform.OS === "android") {
-            setShowPicker(false);
-        }
+            setTimeout(() => setShowPicker(false), 100); // Delay closing to avoid errors
+          }
       };
 
     return (
@@ -136,19 +147,19 @@ export default function CreateJourney(){
                 }}></LabelledInput>
                 <View style={{paddingBottom: 8}} >
                     <Text style={styles.label}>Start Time:</Text>
-                    <Pressable onPress={() => setShowPicker(!showPicker)}>
+                    <Pressable onPress={toggleDatePicker}>
                         <Text style={styles.inputDate}>{startTime.toLocaleString()}</Text>
                     </Pressable>
 
                     {/* Render DateTimePicker when showPicker is true */}
-                    {showPicker && (
+                    {showPicker ? (
                         <DateTimePicker
                         value={journeyInputs.startTime}
                         mode="datetime"
-                        display={Platform.OS === "ios" ? "spinner" : "default"}
+                        display={Platform.OS === "ios" ? "spinner" : "default"} 
                         onChange={handleDateChange}
                         />
-                    )}
+                    ): null}
                      {errors.startTime && <Text style={styles.errorText}>{errors.startTime}</Text>}
                 </View>
                 
