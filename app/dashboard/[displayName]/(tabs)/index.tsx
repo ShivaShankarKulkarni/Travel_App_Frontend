@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
-import { Image, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Image, Platform, Pressable, ScrollView, StyleSheet, TextInput, View, RefreshControl } from "react-native";
 import { Text } from "react-native";
 import { useJourney } from "../../../context/JourneyContext"; 
 
@@ -33,31 +33,40 @@ export default function Dashboard(){
     const[filter,setFilter] = useState("");
     const [sort,setSort] = useState<"early"|"slowly">("early");
     const { displayName } = useLocalSearchParams();
+    const [refreshing, setRefreshing] = useState(false);
+
+    const onRefresh = ()=>{
+        setRefreshing(true);
+        setTimeout(()=>{fetchJourneys();setRefreshing(false)}, 2000);
+    }
+
+    // Getting token condtionally from Android/IOS:
+    const getToken = async () => {
+        if (Platform.OS === "web") {
+          return localStorage.getItem("token");
+        } else {
+          return await AsyncStorage.getItem("token");
+        }
+      };
 
     // Getting all the journyes:
-    useEffect(()=>{
-        const getToken = async () => {
-            if (Platform.OS === "web") {
-              return localStorage.getItem("token");
-            } else {
-              return await AsyncStorage.getItem("token");
-            }
-          };
-        
-        async function fetchJourneys(){
-            try{
-                const token = await getToken();
-                const response = await axios.get(`${BACKEND_URL}/v1/journey/journeys`,{
-                    headers: {
-                        Authorization: token
-                    }
-                })
-                setJourneys(response.data.journeys);
-                setJourneys1(response.data.journeys);
-            }catch(error){
-                console.log(error);
-            }
+    async function fetchJourneys(){
+        try{
+            const token = await getToken();
+            const response = await axios.get(`${BACKEND_URL}/v1/journey/journeys`,{
+                headers: {
+                    Authorization: token
+                }
+            })
+            setJourneys(response.data.journeys);
+            setJourneys1(response.data.journeys);
+        }catch(error){
+            console.log(error);
         }
+    }
+
+
+    useEffect(()=>{
         fetchJourneys();
     },[refresh]);
 
@@ -127,7 +136,14 @@ export default function Dashboard(){
     }
 
     return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <ScrollView contentContainerStyle={styles.scrollContainer}
+        refreshControl={
+        <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['grey']}
+            progressBackgroundColor={'black'}
+      />}>
     <View style={styles.filterContainer}>
         <Text style={styles.filterLabel}>Filter:</Text>
         <TextInput
