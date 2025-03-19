@@ -11,7 +11,6 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useJourney } from "../../../context/JourneyContext";
 import { journeyPost } from "travel-app-common";
-import { useFocusEffect } from "@react-navigation/native";
 
 
 export default function CreateJourney(){
@@ -27,11 +26,13 @@ export default function CreateJourney(){
         route: [] as string[]
     })
 
-    
-    const [startTime, setStartTime] = useState<Date>(new Date());
-    const [showPicker, setShowPicker] = useState(false);
-    const toggleDatePicker = () => setShowPicker((prev) => !prev);
+
+    const [date, setDate] = useState<Date>(new Date());
+    const [time, setTime] = useState<Date>(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string | undefined }>({});
+
      // Function to Validate Inputs
     const validateInputs = () => {
         try {
@@ -62,7 +63,7 @@ export default function CreateJourney(){
             }
         };
         try{
-            const response = await axios.post(`${BACKEND_URL}/v1/journey/journey`, journeyInputs, {
+            await axios.post(`${BACKEND_URL}/v1/journey/journey`, journeyInputs, {
                 headers: {
                     Authorization: await getToken()
                 }
@@ -75,6 +76,8 @@ export default function CreateJourney(){
                 route: []
               });
               setCheckpoint("");
+              setDate(new Date());
+              setTime(new Date());
             return router.push(`/dashboard/${displayName}`);
 
         }catch (error: any) {
@@ -110,24 +113,36 @@ export default function CreateJourney(){
         }));
     };
 
-    const handleDateChange = (event: any, selectedDate?: Date) => {
-        if (event.type === "dismissed") {
-            console.log("Picker dismissed");
-            setShowPicker(false);  // Ensure state updates properly when picker is dismissed
-            return;
-          }
-        
-        if (selectedDate) {
-          setStartTime(selectedDate);
-          setJourneyInputs({
+    // Handle Date Selection
+    const handleConfirmDate = (selectedDate: Date) => {
+        setDate(selectedDate);
+        updateDateTime(selectedDate, time);
+        setShowDatePicker(false);
+    };
+
+    // Handle Time Selection
+    const handleConfirmTime = (selectedTime: Date) => {
+        setTime(selectedTime);
+        updateDateTime(date, selectedTime);
+        setShowTimePicker(false);
+    };
+
+    // Update Combined DateTime
+    const updateDateTime = (selectedDate: Date, selectedTime: Date) => {
+        const combinedDate = new Date(
+            selectedDate.getFullYear(),
+            selectedDate.getMonth(),
+            selectedDate.getDate(),
+            selectedTime.getHours(),
+            selectedTime.getMinutes(),
+            0
+        );
+
+        setJourneyInputs({
             ...journeyInputs,
-            startTime: selectedDate
-          })
-        }
-        if (Platform.OS === "android") {
-            setTimeout(() => setShowPicker(false), 100); // Delay closing to avoid errors
-          }
-      };
+            startTime: combinedDate,
+        });
+    };
 
     return (
             <ScrollView>
@@ -146,20 +161,19 @@ export default function CreateJourney(){
                     })
                 }}></LabelledInput>
                 <View style={{paddingBottom: 8}} >
-                    <Text style={styles.label}>Start Time:</Text>
-                    <Pressable onPress={toggleDatePicker}>
-                        <Text style={styles.inputDate}>{startTime.toLocaleString()}</Text>
+                    <Text style={styles.label}>Start Date:</Text>
+                     {/* Date Picker */}
+                    <Pressable onPress={() => setShowDatePicker(true)}>
+                        <Text style={styles.inputDate}>{date.toDateString()}</Text>
                     </Pressable>
-
-                    {/* Render DateTimePicker when showPicker is true */}
-                    {showPicker ? (
-                        <DateTimePicker
-                        value={journeyInputs.startTime}
-                        mode="datetime"
-                        display={Platform.OS === "ios" ? "spinner" : "default"} 
-                        onChange={handleDateChange}
-                        />
-                    ): null}
+                    <DateTimePickerModal isVisible={showDatePicker} mode="date" onConfirm={handleConfirmDate} onCancel={() => setShowDatePicker(false)} />
+                    
+                    <Text style={styles.label}>Start Time:</Text>
+                    {/* Time Picker */}
+                    <Pressable onPress={() => setShowTimePicker(true)}>
+                        <Text style={styles.inputDate}>{time.toLocaleTimeString()}</Text>
+                    </Pressable>
+                    <DateTimePickerModal isVisible={showTimePicker} mode="time" onConfirm={handleConfirmTime} onCancel={() => setShowTimePicker(false)} />
                      {errors.startTime && <Text style={styles.errorText}>{errors.startTime}</Text>}
                 </View>
                 
@@ -198,6 +212,9 @@ export default function CreateJourney(){
                         route: []
                     })
                     setCheckpoint("");
+                    setDate(new Date());
+                    setTime(new Date());
+                    setErrors({});
                 }}>
                     <Text style={styles.buttonText}>Reset Button</Text>
                 </Pressable>
