@@ -9,7 +9,7 @@ export default function DashboardLayout() {
         name="index"
         options={{ title: `Dashboard` }}
       />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} initialParams={{ displayName }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false } } initialParams={{ displayName }} />
     </Stack>
   );
 }

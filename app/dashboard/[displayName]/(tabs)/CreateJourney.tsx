@@ -5,12 +5,13 @@ import { LabelledInput } from "@/components/Auth";
 import axios from "axios";
 import { z } from "zod";
 import { BACKEND_URL } from "@/config";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useJourney } from "../../../context/JourneyContext";
 import { journeyPost } from "travel-app-common";
+import { auth } from "@/firebaseConfig";
 
 
 export default function CreateJourney(){
@@ -32,6 +33,29 @@ export default function CreateJourney(){
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string | undefined }>({});
+
+    //Checks whether the userData and auth is present, before rendering the page whenever clicked.
+    useFocusEffect(
+        useCallback(() => {
+            const checkUser = async () => {
+                try {
+                    // await AsyncStorage.removeItem("@user");
+                    // await AsyncStorage.removeItem("token");
+                    // await signOut(auth);
+                    const userJson = await AsyncStorage.getItem("@user");
+                    const userData = userJson ? JSON.parse(userJson) : null;
+                    if (userData == null || auth == null) {
+                        // Redirect to sign in
+                        router.navigate('/');
+                    }
+                } catch (e: any) {
+                    alert(e.message);
+                }
+            };
+            checkUser();
+        }, [])
+      );
+
 
      // Function to Validate Inputs
     const validateInputs = () => {

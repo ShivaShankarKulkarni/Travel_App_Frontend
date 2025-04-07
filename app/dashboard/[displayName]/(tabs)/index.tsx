@@ -1,11 +1,12 @@
 import { BACKEND_URL } from "@/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { useEffect, useState } from "react";
-import { useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Image, Platform, Pressable, ScrollView, StyleSheet, TextInput, View, RefreshControl } from "react-native";
 import { Text } from "react-native";
 import { useJourney } from "../../../context/JourneyContext"; 
+import { auth } from "@/firebaseConfig";
 
 
 
@@ -34,6 +35,29 @@ export default function Dashboard(){
     const [sort,setSort] = useState<"early"|"slowly">("early");
     const { displayName } = useLocalSearchParams();
     const [refreshing, setRefreshing] = useState(false);
+
+    //Checks whether the userData and auth is present, before rendering the page whenever clicked.
+    useFocusEffect(
+        useCallback(() => {
+            const checkUser = async () => {
+                try {
+                    // await AsyncStorage.removeItem("@user");
+                    // await AsyncStorage.removeItem("token");
+                    // await signOut(auth);
+                    const userJson = await AsyncStorage.getItem("@user");
+                    const userData = userJson ? JSON.parse(userJson) : null;
+                    if (userData == null || auth == null) {
+                        // Redirect to sign in
+                        router.navigate('/');
+                    }
+                } catch (e: any) {
+                    alert(e.message);
+                }
+            };
+            checkUser();
+        }, [])
+      );
+
 
     const onRefresh = ()=>{
         setRefreshing(true);
