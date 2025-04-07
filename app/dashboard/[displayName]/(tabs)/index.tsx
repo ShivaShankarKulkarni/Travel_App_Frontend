@@ -41,9 +41,6 @@ export default function Dashboard(){
         useCallback(() => {
             const checkUser = async () => {
                 try {
-                    // await AsyncStorage.removeItem("@user");
-                    // await AsyncStorage.removeItem("token");
-                    // await signOut(auth);
                     const userJson = await AsyncStorage.getItem("@user");
                     const userData = userJson ? JSON.parse(userJson) : null;
                     if (userData == null || auth == null) {
@@ -84,8 +81,8 @@ export default function Dashboard(){
             })
             setJourneys(response.data.journeys);
             setJourneys1(response.data.journeys);
-        }catch(error){
-            console.log(error);
+        }catch(error: any){
+            alert(error.message);
         }
     }
 

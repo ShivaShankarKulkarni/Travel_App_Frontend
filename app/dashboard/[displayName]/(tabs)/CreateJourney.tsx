@@ -6,7 +6,6 @@ import axios from "axios";
 import { z } from "zod";
 import { BACKEND_URL } from "@/config";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useJourney } from "../../../context/JourneyContext";

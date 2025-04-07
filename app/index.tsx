@@ -3,7 +3,7 @@ import { ActivityIndicator, Image, Platform, Pressable, SafeAreaView, StyleSheet
 import { useCallback, useEffect, useState } from "react";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from 'expo-web-browser';
-import {GoogleAuthProvider, onAuthStateChanged, signInWithCredential} from "firebase/auth";
+import {GoogleAuthProvider, onAuthStateChanged, signInWithCredential, signOut} from "firebase/auth";
 import {auth} from "../firebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
@@ -31,9 +31,6 @@ export default function Index() {
     useCallback(() => {
         const checkUser = async () => {
             try {
-                // await AsyncStorage.removeItem("@user");
-                // await AsyncStorage.removeItem("token");
-                // await signOut(auth);
                 const userJson = await AsyncStorage.getItem("@user");
                 const userData = userJson ? JSON.parse(userJson) : null;
                 const displayName = await AsyncStorage.getItem("displayName");
@@ -44,8 +41,6 @@ export default function Index() {
                         pathname: "/dashboard/[displayName]",
                         params: { displayName: encodeURIComponent(displayName) }
                     });
-                    // setLoading(true);
-                    // await sendRequest();
                 }
             } catch (e: any) {
                 alert(e.message);
@@ -55,63 +50,13 @@ export default function Index() {
     }, [])
   );
 
-  const checkLocalUser = async ()=>{
-        try{
-          const userJson = await AsyncStorage.getItem("@user");
-          const userData = userJson ? JSON.parse(userJson) : null;
-          if(userData != null){
-            setUserInfo(userData);
-            setLoading(true);
-            await sendRequest();
-          }
-        }catch(e: any){
-          alert(e.message);
-        }
-      }
-
-      
-  // useEffect(()=>{
-  //   const checkLocalUser = async ()=>{
-  //     try{
-  //       const userJson = await AsyncStorage.getItem("@user");
-  //       const userData = userJson ? JSON.parse(userJson) : null;
-  //       if(userData != null){
-  //         setUserInfo(userData);
-  //         setLoading(true);
-  //         console.log("UserData from index = ",userData);
-  //         await sendRequest();
-  //       }
-  //     }catch(e: any){
-  //       alert(e.message);
-  //     }
-  //   }
-  //   checkLocalUser();
-  // },[]);
-
-//   useFocusEffect(
-//     useCallback(() => {
-//       const checkLocalUser = async ()=>{
-//         try{
-//           const userJson = await AsyncStorage.getItem("@user");
-//           const userData = userJson ? JSON.parse(userJson) : null;
-//           if(userData != null){
-//             setUserInfo(userData);
-//             setLoading(true);
-//             console.log("UserData from index = ",userData);
-//             await sendRequest();
-//           }
-//         }catch(e: any){
-//           alert(e.message);
-//         }
-//       }
-//       checkLocalUser();
-//     }, [])
-// );
-
 
   async function sendRequest(){
-    console.log("Inside sendRequest function")
-    const response = await axios.post(`${BACKEND_URL}/v1/user/googlesignin`, userinfo);
+    const user = await auth.currentUser;
+    if (!user) return setLoading(false);
+    const idToken = await user.getIdToken(); // ✅ This token from FireBase matches what Admin SDK expects in Backend
+
+    const response = await axios.post(`${BACKEND_URL}/v1/user/googlesignin`, {id_token: idToken});
     const jwt = response.data.token;
     const displayName = response.data.newUser.fullName
     if(Platform.OS === "web"){
@@ -128,21 +73,19 @@ export default function Index() {
     });
   }
 
+  //Soon after successfull Google Account Sigin in prompt
   useEffect(()=>{
-    
     if(response?.type === "success"){
       setLoading(true);
       const {id_token} = response.params;
       const credential = GoogleAuthProvider.credential(id_token);
-      signInWithCredential(auth, credential)
+      signInWithCredential(auth, credential);
     }
   },[response]);
 
+  //After auth has changed
   useEffect(()=>{
-    checkLocalUser();
     const unsub = onAuthStateChanged(auth, async (user) => {
-      console.log("Auth ==", auth);
-      console.log("User ==", user);
         if(user){
           setUserInfo({
             email: user.email || "",
