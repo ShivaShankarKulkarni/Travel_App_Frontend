@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { signOut } from "firebase/auth";
 import { useCallback, useEffect } from "react";
-import { Pressable, SafeAreaView, Text } from "react-native";
+import { Pressable, SafeAreaView, StyleSheet, Text } from "react-native";
 
 interface UserInfo {
     email?: string; // Optional because it might not always be available
@@ -36,18 +36,54 @@ export default function Settings(){
     );
 
 
-    return <SafeAreaView>
-        <Text>
-            Hi from Settings
-        </Text>
-        <Pressable onPress={async()=>{
-            await signOut(auth);
-            await AsyncStorage.removeItem("@user");
-            await AsyncStorage.removeItem("token");
-            await AsyncStorage.removeItem("displayName");
-            router.navigate('/');
-        }}>
-            <Text>Sign out</Text>
-        </Pressable>
-    </SafeAreaView>
+    return (
+        <SafeAreaView style={styles.container}>
+    
+          <Pressable
+            onPress={async () => {
+              await signOut(auth);
+              await AsyncStorage.removeItem('@user');
+              await AsyncStorage.removeItem('token');
+              await AsyncStorage.removeItem('displayName');
+              router.navigate('/');
+            }}
+            style={styles.signOutButton}
+          >
+            <Text style={styles.signOutText}>Sign Out</Text>
+          </Pressable>
+        </SafeAreaView>
+      );
 }
+
+const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+      backgroundColor: '#fff',
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: '600',
+      marginBottom: 30,
+    },
+    signOutButton: {
+      backgroundColor: '#FF3B30', // iOS system red
+      paddingVertical: 12,
+      paddingHorizontal: 25,
+      borderRadius: 8,
+      shadowColor: '#000',
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 3, // for Android shadow
+    },
+    signOutText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+  });
+  

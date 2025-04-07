@@ -6,7 +6,7 @@ export default function RootLayout() {
   return (
       <JourneyProvider>
         <Stack>
-        <Stack.Screen name="index" options={{ title: "Index" , headerBackVisible: false }} />
+        <Stack.Screen name="index" options={{ title: "Travel App" , headerBackVisible: false }} />
         {/* <Stack.Screen name="signin" options={{ title: "SignIn", headerBackVisible: false ,  gestureEnabled: false}} />
         <Stack.Screen name="signup" options={{ title: "SignUp", headerBackVisible: false , gestureEnabled: false}} /> */}
         <Stack.Screen name="dashboard/[displayName]" options={{ headerShown: false, headerBackVisible: false }} />

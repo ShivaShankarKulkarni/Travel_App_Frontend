@@ -1,5 +1,5 @@
 import { Redirect, router, useFocusEffect } from "expo-router";
-import { ActivityIndicator, Image, Platform, Pressable, SafeAreaView, Text, View } from "react-native";
+import { ActivityIndicator, Image, Platform, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { useCallback, useEffect, useState } from "react";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from 'expo-web-browser';
@@ -8,6 +8,8 @@ import {auth} from "../firebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { BACKEND_URL } from "@/config";
+
+
 WebBrowser.maybeCompleteAuthSession();
 
 interface UserInfo {
@@ -159,10 +161,56 @@ export default function Index() {
   }, []);
 
   return (
-    <SafeAreaView style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-        {!(loading) ? (<Pressable onPress={()=> promptAsync()}>
-          <Text>Sign in With Google</Text>
-        </Pressable> ): (<View style={{flex: 1, alignItems: "center", justifyContent: "center"}}><ActivityIndicator size={"large"}></ActivityIndicator></View>) }
+    <SafeAreaView style={styles.container}>
+      {!loading ? (
+        <Pressable onPress={()=>promptAsync()} style={styles.googleButton}>
+          <Image
+            source={require('../assets/images/Google-Logo.png')} // Place the logo in assets folder
+            style={styles.googleLogo}
+          />
+          <Text style={styles.googleText}>Sign up with Google</Text>
+        </Pressable>
+      ) : (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" />
+        </View>
+      )}
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4285F4',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 4,
+    elevation: 2, // Android shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  googleLogo: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+  },
+  googleText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
