@@ -3,7 +3,7 @@ import { ActivityIndicator, Image, Platform, Pressable, SafeAreaView, StyleSheet
 import { useCallback, useEffect, useState } from "react";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from 'expo-web-browser';
-import {GoogleAuthProvider, onAuthStateChanged, signInWithCredential, signOut} from "firebase/auth";
+import {GoogleAuthProvider, onAuthStateChanged, signInWithCredential} from "firebase/auth";
 import {auth} from "../firebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
