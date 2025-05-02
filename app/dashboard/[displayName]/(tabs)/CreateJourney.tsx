@@ -10,7 +10,7 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useJourney } from "../../../context/JourneyContext";
 import { journeyPost } from "travel-app-common";
-import { auth } from "@/firebaseConfig";
+// import { auth } from "@/firebaseConfig";
 
 
 export default function CreateJourney(){
@@ -34,26 +34,26 @@ export default function CreateJourney(){
     const [errors, setErrors] = useState<{ [key: string]: string | undefined }>({});
 
     //Checks whether the userData and auth is present, before rendering the page whenever clicked.
-    useFocusEffect(
-        useCallback(() => {
-            const checkUser = async () => {
-                try {
-                    // await AsyncStorage.removeItem("@user");
-                    // await AsyncStorage.removeItem("token");
-                    // await signOut(auth);
-                    const userJson = await AsyncStorage.getItem("@user");
-                    const userData = userJson ? JSON.parse(userJson) : null;
-                    if (userData == null || auth == null) {
-                        // Redirect to sign in
-                        router.navigate('/');
-                    }
-                } catch (e: any) {
-                    alert(e.message);
-                }
-            };
-            checkUser();
-        }, [])
-      );
+    // useFocusEffect(
+    //     useCallback(() => {
+    //         const checkUser = async () => {
+    //             try {
+    //                 // await AsyncStorage.removeItem("@user");
+    //                 // await AsyncStorage.removeItem("token");
+    //                 // await signOut(auth);
+    //                 const userJson = await AsyncStorage.getItem("@user");
+    //                 const userData = userJson ? JSON.parse(userJson) : null;
+    //                 if (userData == null || auth == null) {
+    //                     // Redirect to sign in
+    //                     router.navigate('/');
+    //                 }
+    //             } catch (e: any) {
+    //                 alert(e.message);
+    //             }
+    //         };
+    //         checkUser();
+    //     }, [])
+    //   );
 
 
      // Function to Validate Inputs

@@ -27,8 +27,14 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>myapp</string>
+          <string>TravelApp</string>
           <string>com.anonymous.travelios</string>
+        </array>
+      </dict>
+      <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>com.googleusercontent.apps.692712647931-dob5kco45bf8t63la8i9nkcv20utebhm</string>
         </array>
       </dict>
       <dict>

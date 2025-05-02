@@ -27,6 +27,7 @@
         <data android:scheme="myapp"/>
         <data android:scheme="com.anonymous.travelios"/>
         <data android:scheme="exp+travel-ios"/>
+        <data android:scheme="TravelApp"/>
       </intent-filter>
     </activity>
   </application>

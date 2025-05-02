@@ -6,9 +6,7 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Image, Platform, Pressable, ScrollView, StyleSheet, TextInput, View, RefreshControl } from "react-native";
 import { Text } from "react-native";
 import { useJourney } from "../../../context/JourneyContext"; 
-import { auth } from "@/firebaseConfig";
-
-
+// import { auth } from "@/firebaseConfig";
 
 interface Captain {
     id: number;
@@ -37,23 +35,23 @@ export default function Dashboard(){
     const [refreshing, setRefreshing] = useState(false);
 
     //Checks whether the userData and auth is present, before rendering the page whenever clicked.
-    useFocusEffect(
-        useCallback(() => {
-            const checkUser = async () => {
-                try {
-                    const userJson = await AsyncStorage.getItem("@user");
-                    const userData = userJson ? JSON.parse(userJson) : null;
-                    if (userData == null || auth == null) {
-                        // Redirect to sign in
-                        router.navigate('/');
-                    }
-                } catch (e: any) {
-                    alert(e.message);
-                }
-            };
-            checkUser();
-        }, [])
-      );
+    // useFocusEffect(
+    //     useCallback(() => {
+    //         const checkUser = async () => {
+    //             try {
+    //                 const userJson = await AsyncStorage.getItem("@user");
+    //                 const userData = userJson ? JSON.parse(userJson) : null;
+    //                 if (userData == null || auth == null) {
+    //                     // Redirect to sign in
+    //                     router.navigate('/');
+    //                 }
+    //             } catch (e: any) {
+    //                 alert(e.message);
+    //             }
+    //         };
+    //         checkUser();
+    //     }, [])
+    //   );
 
 
     const onRefresh = ()=>{
