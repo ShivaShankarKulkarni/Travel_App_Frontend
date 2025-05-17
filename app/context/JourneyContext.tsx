@@ -15,7 +15,7 @@ export const JourneyProvider = ({ children }: { children: React.ReactNode }) => 
       {children}
     </JourneyContext.Provider>
   );
-};
+};  
 
 export const useJourney = () => {
   const context = useContext(JourneyContext);
